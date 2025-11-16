@@ -84,11 +84,15 @@
     }
 
     .sidebar-title {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
       text-align: center;
     }
 
     .sidebar-title h1 {
-      margin: 0 0 6px;
+      margin: 0;
       font-size: 24px;
       font-weight: 700;
       background: linear-gradient(135deg, var(--primary-blue), var(--primary-teal));
@@ -101,10 +105,11 @@
       font-size: 12px;
       color: var(--text-secondary);
       font-weight: 500;
+      display: block;
     }
 
     .chip-brand {
-      display: inline-flex;
+      display: flex;
       align-items: center;
       gap: 6px;
       padding: 6px 12px;
@@ -114,7 +119,6 @@
       font-size: 11px;
       color: #166534;
       font-weight: 600;
-      margin-top: 12px;
     }
 
     .chip-dot {
@@ -867,8 +871,7 @@
     </div>
 
     <div class="sidebar-footer">
-      <span class="label">wAIsteflow demo</span>
-      <span class="badge-small">Corporate Edition</span>
+      <span class="badge-small">Copyright ©2025 wAIsteflow</span>
     </div>
   </aside>
 
