@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>wAIsteflow – Corporate Edition</title>
+
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --primary-blue: #0066cc;
+      --primary-teal: #00bcd4;
+      --success-green: #10b981;
+      --warning-yellow: #f59e0b;
+      --danger-red: #ef4444;
+      --bg-main: #f8fafc;
+      --bg-card: #ffffff;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --border-color: #e2e8f0;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+      --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+      --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg-main);
+      color: var(--text-primary);
+    }
+
+    .app {
+      display: flex;
+      height: 100%;
+      width: 100%;
+    }
+
+    /* Left sidebar */
+    .sidebar {
+      width: 360px;
+      max-width: 100%;
+      background: var(--bg-card);
+      border-right: 1px solid var(--border-color);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: var(--shadow-md);
+      z-index: 2;
+      overflow-y: auto;
+    }
+
+    .sidebar-header {
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    .logo {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 16px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+    }
+    
+    .logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .sidebar-title {
+      text-align: center;
+    }
+
+    .sidebar-title h1 {
+      margin: 0 0 6px;
+      font-size: 24px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--primary-blue), var(--primary-teal));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .sidebar-title span {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .chip-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      font-size: 11px;
+      color: #166534;
+      font-weight: 600;
+      margin-top: 12px;
+    }
+
+    .chip-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--success-green);
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+    }
+
+    .card {
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .card h2 {
+      margin: 0 0 12px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .card h2 span.icon {
+      font-size: 18px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field label {
+      font-size: 11px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+
+    select {
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      font-size: 14px;
+      background: var(--bg-main);
+      color: var(--text-primary);
+      outline: none;
+      width: 100%;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    select:focus {
+      border-color: var(--primary-blue);
+      box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      font-size: 10px;
+      color: var(--text-secondary);
+      border-top: 1px solid var(--border-color);
+      padding-top: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sidebar-footer span.label {
+      font-weight: 600;
+    }
+
+    .sidebar-footer span.badge-small {
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border-color);
+      font-size: 9px;
+      color: var(--text-secondary);
+      background: var(--bg-main);
+      font-weight: 600;
+    }
+
+    /* Stats card */
+    .stats-card {
+      background: linear-gradient(135deg, rgba(0, 102, 204, 0.05), rgba(0, 188, 212, 0.05));
+      border-color: rgba(0, 122, 255, 0.2);
+    }
+
+    .stats-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 12px;
+    }
+
+    .stats-header h2 {
+      margin: 0;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--primary-blue);
+    }
+
+    .stats-header span {
+      font-size: 11px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .stats-summary {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .stats-summary-top {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .stats-summary-bottom {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .summary-item {
+      padding: 12px;
+      border-radius: 10px;
+      background: var(--bg-main);
+      border: 1px solid var(--border-color);
+      transition: all 0.2s;
+    }
+
+    .summary-item:hover {
+      border-color: var(--primary-blue);
+      box-shadow: var(--shadow-sm);
+      transform: translateY(-2px);
+    }
+
+    .summary-item.highlight {
+      border-color: rgba(0, 122, 255, 0.3);
+      background: linear-gradient(135deg, rgba(0, 102, 204, 0.05), rgba(0, 188, 212, 0.05));
+    }
+
+    .summary-label {
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .summary-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .stat-indicator {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+    }
+
+    .indicator-green {
+      background: var(--success-green);
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+    }
+
+    .indicator-yellow {
+      background: var(--warning-yellow);
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+    }
+
+    .indicator-red {
+      background: var(--danger-red);
+      box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 28px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .chip-green {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .chip-yellow {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .chip-red {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    /* Bin table */
+    .bin-table {
+      margin-top: 12px;
+      border-top: 1px solid var(--border-color);
+      padding-top: 10px;
+      overflow-y: auto;
+      max-height: 300px;
+      font-size: 11px;
+    }
+
+    .bin-table::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .bin-table::-webkit-scrollbar-track {
+      background: var(--bg-main);
+      border-radius: 3px;
+    }
+
+    .bin-table::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 3px;
+    }
+
+    .bin-table::-webkit-scrollbar-thumb:hover {
+      background: var(--text-secondary);
+    }
+
+    .bin-row {
+      display: grid;
+      grid-template-columns: 70px 1fr 1fr 1fr 1fr;
+      gap: 6px;
+      padding: 8px 0;
+      border-bottom: 1px dashed var(--border-color);
+      align-items: center;
+    }
+
+    .bin-row-header {
+      font-weight: 700;
+      color: var(--text-secondary);
+      border-bottom: 2px solid var(--border-color);
+      margin-bottom: 4px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .bin-id {
+      font-weight: 700;
+      color: var(--text-primary);
+      font-size: 12px;
+    }
+
+    .bin-collected {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: var(--text-secondary);
+      margin-top: 2px;
+      line-height: 1.2;
+    }
+
+    .bin-collected span {
+      display: inline-block;
+      white-space: nowrap;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid;
+      font-size: 8px;
+      font-weight: 600;
+      max-width: 100%;
+      text-align: center;
+    }
+
+    .collected-yes {
+      border-color: var(--success-green);
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .collected-no {
+      border-color: var(--border-color);
+      background: var(--bg-main);
+      color: var(--text-secondary);
+    }
+
+    /* Main: map + right panel */
+    .main {
+      flex: 1;
+      display: flex;
+      min-width: 0;
+      padding: 16px 16px 16px 0;
+    }
+
+    #map {
+      flex: 1;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--border-color);
+    }
+
+    .right-panel {
+      width: 400px;
+      max-width: 100%;
+      background: transparent;
+      padding-left: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      overflow-y: auto;
+    }
+
+    .right-panel::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .right-panel::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .right-panel::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 3px;
+    }
+
+    /* Info dropdown card */
+    .info-card {
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .info-label {
+      text-transform: none;
+      letter-spacing: 0;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .info-label .icon {
+      font-size: 18px;
+      margin-right: 0;
+    }
+
+    /* Route stats card */
+    .route-card {
+      background: linear-gradient(135deg, var(--primary-blue), var(--primary-teal));
+      border-color: rgba(0, 122, 255, 0.3);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      color: white;
+      box-shadow: var(--shadow-md);
+    }
+
+    .route-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .route-card-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .route-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: white;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .route-pill-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      font-size: 11px;
+    }
+
+    .route-pill {
+      padding: 10px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .route-pill-label {
+      font-size: 9px;
+      opacity: 0.9;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .route-pill-value {
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .route-card-footnote {
+      margin-top: 4px;
+      font-size: 10px;
+      opacity: 0.9;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .route-foot-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .route-foot-row span.label {
+      font-size: 10px;
+      opacity: 0.85;
+      font-weight: 500;
+    }
+
+    .route-foot-row span.value {
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    /* Forecast section */
+    .forecast-section {
+      position: relative;
+    }
+
+    .forecast-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .forecast-title span.icon {
+      font-size: 18px;
+    }
+
+    .routes-forecast {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 11px;
+    }
+
+    .route-run-card {
+      background: var(--bg-card);
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      padding: 12px;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s;
+    }
+
+    .route-run-card:hover {
+      border-color: var(--primary-blue);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .route-run-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 8px;
+    }
+
+    .route-run-title {
+      font-weight: 700;
+      color: var(--text-primary);
+      font-size: 12px;
+    }
+
+    .route-run-time {
+      font-size: 10px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .route-run-body {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px 12px;
+    }
+
+    .route-run-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .route-run-row span.label {
+      color: var(--text-secondary);
+      font-size: 10px;
+      font-weight: 500;
+    }
+
+    .route-run-row span.value {
+      font-weight: 700;
+      font-size: 11px;
+      color: var(--text-primary);
+    }
+
+    /* Neighborhood status */
+    .status-card {
+      margin-top: 0;
+      background: var(--bg-card);
+      border-radius: 12px;
+      border: 2px solid;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 12px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .status-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .status-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      box-shadow: 0 0 10px;
+    }
+
+    .status-label {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid;
+      white-space: nowrap;
+    }
+
+    .status-desc {
+      font-size: 11px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .status-normal {
+      border-color: rgba(16, 185, 129, 0.3);
+      background: #f0fdf4;
+    }
+    .status-normal .status-dot {
+      background: var(--success-green);
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+    }
+    .status-normal .status-label {
+      border-color: var(--success-green);
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .status-warning {
+      border-color: rgba(245, 158, 11, 0.3);
+      background: #fefce8;
+    }
+    .status-warning .status-dot {
+      background: var(--warning-yellow);
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
+    }
+    .status-warning .status-label {
+      border-color: var(--warning-yellow);
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .status-critical {
+      border-color: rgba(239, 68, 68, 0.3);
+      background: #fef2f2;
+    }
+    .status-critical .status-dot {
+      background: var(--danger-red);
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
+    }
+    .status-critical .status-label {
+      border-color: var(--danger-red);
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .hidden { display: none; }
+
+    @media (max-width: 1200px) {
+      .app { flex-direction: column; }
+      .main {
+        flex-direction: column;
+        padding: 12px 16px 16px;
+      }
+      .right-panel {
+        width: 100%;
+        padding: 16px 0 0;
+      }
+      #map {
+        margin-bottom: 16px;
+        height: 500px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<div class="app">
+  <!-- LEFT SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <img src="logo.png.png" alt="wAIsteflow Logo" />
+      </div>
+      <div class="sidebar-title">
+        <h1>wAIsteflow</h1>
+        <span>Smart Waste Management System</span>
+        <div class="chip-brand">
+          <span class="chip-dot"></span>
+          System Online • Last update: 12:35
+        </div>
+      </div>
+    </div>
+
+    <!-- Neighborhood dropdown -->
+    <div class="card">
+      <h2>
+        <span class="icon">📍</span>
+        Neighborhood
+      </h2>
+      <div class="field">
+        <select id="neighborhoodSelect">
+          <option value="center">Κέντρο Αθήνας</option>
+          <option value="kolonaki">Κολωνάκι</option>
+          <option value="exarchia">Εξάρχεια</option>
+          <option value="kypseli">Κυψέλη</option>
+          <option value="pagrati">Παγκράτι</option>
+          <option value="petralona">Πετράλωνα</option>
+          <option value="ampelokipoi">Αμπελόκηποι</option>
+          <option value="gazi">Γκάζι / Κεραμεικός</option>
+          <option value="kallithea">Νεάπολη / Νέος Κόσμος</option>
+          <option value="koukaki">Κουκάκι</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Stats + bins info -->
+    <div id="stats-card" class="card stats-card hidden">
+      <div class="stats-header">
+        <h2>
+          <span class="icon">📊</span>
+          Statistics
+        </h2>
+        <span id="stats-neighborhood-label"></span>
+      </div>
+
+      <!-- Top row: 2 items -->
+      <div class="stats-summary stats-summary-top">
+        <div class="summary-item highlight">
+          <div class="summary-label">Total Bins</div>
+          <div class="summary-value" id="stats-total-bins">–</div>
+        </div>
+        <div class="summary-item highlight">
+          <div class="summary-label">Total Capacity</div>
+          <div class="summary-value" id="stats-total-capacity">–</div>
+        </div>
+      </div>
+
+      <!-- Bottom row: 3 items -->
+      <div class="stats-summary stats-summary-bottom">
+        <div class="summary-item">
+          <div class="summary-label">Avg Fullness</div>
+          <div class="summary-value" id="stats-avg-fullness">–</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Avg Temperature</div>
+          <div class="summary-value" id="stats-avg-temp">–</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Avg Humidity</div>
+          <div class="summary-value" id="stats-avg-humidity">–</div>
+        </div>
+      </div>
+
+      <!-- Bins info -->
+      <div class="bin-table" id="bin-table">
+        <!-- Populated dynamically -->
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <span class="label">wAIsteflow demo</span>
+      <span class="badge-small">Corporate Edition</span>
+    </div>
+  </aside>
+
+  <!-- MAIN: MAP + RIGHT PANEL -->
+  <div class="main">
+    <div id="map"></div>
+
+    <!-- RIGHT PANEL -->
+    <aside class="right-panel">
+      <!-- View selector -->
+      <div class="card info-card">
+        <label for="routeSelect" class="info-label">
+          <span class="icon">ℹ️</span>
+          View Mode
+        </label>
+        <select id="routeSelect">
+          <option value="today">Live View</option>
+          <option value="future1">Route 1 Forecast</option>
+          <option value="future2">Route 2 Forecast</option>
+          <option value="future3">Route 3 Forecast</option>
+        </select>
+      </div>
+
+      <!-- Route stats card (day totals) -->
+      <div class="card route-card">
+        <div class="route-card-header">
+          <div class="route-card-title">
+            <div class="route-icon">↻</div>
+            <span>Daily Route Statistics</span>
+          </div>
+        </div>
+        <div class="route-pill-row">
+          <div class="route-pill">
+            <div class="route-pill-label">Cost Saved</div>
+            <div class="route-pill-value" id="route-saved-eur">–</div>
+          </div>
+          <div class="route-pill">
+            <div class="route-pill-label">CO₂ Reduced</div>
+            <div class="route-pill-value" id="route-saved-co2">–</div>
+          </div>
+          <div class="route-pill">
+            <div class="route-pill-label">KM Saved</div>
+            <div class="route-pill-value" id="route-saved-km">–</div>
+          </div>
+        </div>
+        <div class="route-card-footnote">
+          <div class="route-foot-row">
+            <span class="label">Total daily distance</span>
+            <span class="value" id="route-distance">–</span>
+          </div>
+          <div class="route-foot-row">
+            <span class="label">Fuel savings</span>
+            <span class="value" id="route-saved-fuel">–</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upcoming routes -->
+      <div id="forecast-card" class="card">
+        <div class="forecast-section">
+          <div class="forecast-title">
+            <span class="icon">🗓️</span>
+            <span>Upcoming Routes</span>
+          </div>
+          <div class="routes-forecast" id="routes-forecast">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Neighborhood status -->
+      <div id="neighborhood-status-card" class="status-card status-normal">
+        <div class="status-header">
+          <div class="status-title">
+            <div class="status-dot"></div>
+            <span>Neighborhood Status</span>
+          </div>
+          <div id="neighborhood-status-label" class="status-label">
+            Normal
+          </div>
+        </div>
+        <div id="neighborhood-status-desc" class="status-desc">
+          All metrics within expected ranges.
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- Load dataset FIRST -->
+<script src="waisteflow-data.js"></script>
+
+<!-- Leaflet JS -->
+<script
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+  crossorigin=""
+></script>
+
+<script>
+// Destructure all input data from WASTE_DATA
+const {
+  PARKING,
+  THRESHOLDS,
+  FULLNESS_COLLECT_THRESHOLD,
+  FUEL_PER_KM,
+  FUEL_PRICE_EUR_PER_L,
+  CO2_PER_L_DIESEL_KG,
+  NEIGHBORHOODS
+} = WASTE_DATA;
+
+function formatVolume(value) {
+  return Math.round(value).toLocaleString('el-GR');
+}
+
+const map = L.map('map').setView([37.9838, 23.7275], 12);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19,
+  attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
+
+let markers = [];
+let routeLine = null;
+let parkingMarker = null;
+let currentNeighborhoodKey = null;
+let currentFullKm = null;
+let forecastRoutes = [];
+let currentMode = 'today';
+
+function getColorClassForMetric(value, thresholds) {
+  if (value < thresholds.green) return "chip-green";
+  if (value < thresholds.yellow) return "chip-yellow";
+  return "chip-red";
+}
+
+function getZone(value, metricKey) {
+  const t = THRESHOLDS[metricKey];
+  if (value < t.green) return "green";
+  if (value < t.yellow) return "yellow";
+  return "red";
+}
+
+async function getOptimalRouteWithParking(parking, binObjs) {
+  const allPoints = [parking, ...binObjs.map(b => [b.lat, b.lng])];
+  const coordStr = allPoints.map(p => `${p[1]},${p[0]}`).join(";");
+  const url = `https://router.project-osrm.org/trip/v1/driving/${coordStr}?source=first&roundtrip=true&steps=false&geometries=geojson&overview=full`;
+  
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Trip/OSRM HTTP error " + res.status);
+  const data = await res.json();
+  if (data.code !== "Ok" || !data.trips || !data.trips.length) {
+    throw new Error("OSRM could not compute a route");
+  }
+  return data.trips[0];
+}
+
+function clearMapLayers() {
+  markers.forEach(m => map.removeLayer(m));
+  markers = [];
+  if (routeLine) {
+    map.removeLayer(routeLine);
+    routeLine = null;
+  }
+  if (parkingMarker) {
+    map.removeLayer(parkingMarker);
+    parkingMarker = null;
+  }
+}
+
+function drawParkingMarker() {
+  parkingMarker = L.circleMarker(PARKING, {
+    radius: 10,
+    color: "#0066cc",
+    weight: 3,
+    fillColor: "#00bcd4",
+    fillOpacity: 0.9
+  }).addTo(map);
+  parkingMarker.bindPopup("<b>Parking / Depot</b>");
+}
+
+function drawBinMarkers(bins) {
+  markers.forEach(m => map.removeLayer(m));
+  markers = [];
+
+  const showCollectLine = currentMode !== "today";
+
+  bins.forEach(bin => {
+    const statusClass = getColorClassForMetric(bin.metrics.fullness, THRESHOLDS.fullness);
+    let colorCfg;
+    const isCollected = bin.shouldCollect;
+
+    if (!isCollected) {
+      colorCfg = {
+        radius: 6,
+        color: "#cbd5e1",
+        weight: 1,
+        fillColor: "#cbd5e1",
+        fillOpacity: 0.5
+      };
+    } else {
+      if (statusClass === "chip-green") {
+        colorCfg = {
+          radius: 7,
+          color: "#10b981",
+          weight: 2,
+          fillColor: "#10b981",
+          fillOpacity: 0.9
+        };
+      } else if (statusClass === "chip-yellow") {
+        colorCfg = {
+          radius: 7,
+          color: "#f59e0b",
+          weight: 2,
+          fillColor: "#f59e0b",
+          fillOpacity: 0.9
+        };
+      } else {
+        colorCfg = {
+          radius: 8,
+          color: "#ef4444",
+          weight: 2,
+          fillColor: "#ef4444",
+          fillOpacity: 0.95
+        };
+      }
+    }
+
+    const m = L.circleMarker([bin.lat, bin.lng], colorCfg).addTo(map);
+    const collectLine = showCollectLine
+      ? `Collection: <b>${bin.shouldCollect ? "Yes" : "No"}</b><br/>`
+      : "";
+
+    const popupHtml = `
+      <b>Bin ${bin.id}</b><br/>
+      Capacity: ${formatVolume(bin.capacity_l)} L<br/>
+      Fullness: ${bin.metrics.fullness}%<br/>
+      Temperature: ${bin.metrics.temperature}&deg;C<br/>
+      Humidity: ${bin.metrics.humidity}%<br/>
+      ${collectLine}
+    `;
+    m.bindPopup(popupHtml);
+    markers.push(m);
+  });
+}
+
+function drawRoute(route) {
+  if (routeLine) map.removeLayer(routeLine);
+  routeLine = L.geoJSON(route.geometry, {
+    weight: 4,
+    color: "#0066cc",
+    opacity: 0.7
+  }).addTo(map);
+  map.fitBounds(routeLine.getBounds(), { padding: [40, 40] });
+}
+
+function updateNeighborhoodStatus(bins) {
+  const card = document.getElementById("neighborhood-status-card");
+  const labelEl = document.getElementById("neighborhood-status-label");
+  const descEl = document.getElementById("neighborhood-status-desc");
+
+  if (!bins || !bins.length) {
+    card.className = "status-card status-normal";
+    labelEl.textContent = "No Data";
+    descEl.textContent = "No active bins to assess.";
+    return;
+  }
+
+  const avgFullness = bins.reduce((s, b) => s + b.metrics.fullness, 0) / bins.length;
+  const maxFullness = Math.max(...bins.map(b => b.metrics.fullness));
+  const hotBins = bins.filter(b => b.metrics.temperature >= THRESHOLDS.temperature.yellow).length;
+  const humidBins = bins.filter(b => b.metrics.humidity >= THRESHOLDS.humidity.yellow).length;
+
+  let statusClass = "status-normal";
+  let label = "Normal";
+  let desc = "All metrics within expected ranges for this neighborhood.";
+
+  if (maxFullness >= 90 || (hotBins >= 3 && humidBins >= 3)) {
+    statusClass = "status-critical";
+    label = "High Priority";
+    desc = "Very high fullness and environmental indicators. Immediate collection recommended.";
+  } else if (avgFullness >= 65 || hotBins >= 2 || humidBins >= 2) {
+    statusClass = "status-warning";
+    label = "Elevated Load";
+    desc = "Increased metrics detected. Close monitoring recommended.";
+  }
+
+  card.className = `status-card ${statusClass}`;
+  labelEl.textContent = label;
+  descEl.textContent = desc;
+}
+
+function updateStatsPanel(neighborhoodLabel, bins, binsToCollect) {
+  const card = document.getElementById("stats-card");
+  const labelEl = document.getElementById("stats-neighborhood-label");
+  const totalBinsEl = document.getElementById("stats-total-bins");
+  const totalCapEl = document.getElementById("stats-total-capacity");
+  const avgFullnessEl = document.getElementById("stats-avg-fullness");
+  const avgTempEl = document.getElementById("stats-avg-temp");
+  const avgHumidityEl = document.getElementById("stats-avg-humidity");
+  const tableEl = document.getElementById("bin-table");
+
+  if (!bins || !bins.length) {
+    card.classList.add("hidden");
+    updateNeighborhoodStatus([]);
+    return;
+  }
+
+  card.classList.remove("hidden");
+  labelEl.textContent = neighborhoodLabel;
+
+  const totalBins = bins.length;
+  const totalCapacityL = bins.reduce((s, b) => s + b.capacity_l, 0);
+  const sumFullness = bins.reduce((s, b) => s + b.metrics.fullness, 0);
+  const sumTemp = bins.reduce((s, b) => s + b.metrics.temperature, 0);
+  const sumHumidity = bins.reduce((s, b) => s + b.metrics.humidity, 0);
+
+  const avgFullness = sumFullness / totalBins;
+  const avgTemp = sumTemp / totalBins;
+  const avgHumidity = sumHumidity / totalBins;
+
+  totalBinsEl.textContent = totalBins;
+  totalCapEl.textContent = formatVolume(totalCapacityL) + " L";
+
+  const fullnessZone = getZone(avgFullness, "fullness");
+  const tempZone = getZone(avgTemp, "temperature");
+  const humZone = getZone(avgHumidity, "humidity");
+
+  avgFullnessEl.innerHTML = `<span class="stat-indicator indicator-${fullnessZone}"></span>${avgFullness.toFixed(1)}%`;
+  avgTempEl.innerHTML = `<span class="stat-indicator indicator-${tempZone}"></span>${avgTemp.toFixed(1)}°C`;
+  avgHumidityEl.innerHTML = `<span class="stat-indicator indicator-${humZone}"></span>${avgHumidity.toFixed(1)}%`;
+
+  // Build bin table rows
+  let html = "";
+  html += `
+    <div class="bin-row bin-row-header">
+      <div>ID</div>
+      <div>Capacity</div>
+      <div>Fullness</div>
+      <div>Temp</div>
+      <div>Humidity</div>
+    </div>
+  `;
+
+  const showCollectBadge = currentMode !== "today";
+
+  bins.forEach(bin => {
+    const fullnessClass = getColorClassForMetric(bin.metrics.fullness, THRESHOLDS.fullness);
+    const tempClass = getColorClassForMetric(bin.metrics.temperature, THRESHOLDS.temperature);
+    const humidityClass = getColorClassForMetric(bin.metrics.humidity, THRESHOLDS.humidity);
+
+    const badgeHtml = showCollectBadge
+      ? `
+        <div class="bin-collected">
+          <span class="${bin.shouldCollect ? "collected-yes" : "collected-no"}">
+            ${bin.shouldCollect ? "Collect" : "Skip"}
+          </span>
+        </div>
+      `
+      : "";
+
+    html += `
+      <div class="bin-row">
+        <div>
+          <div class="bin-id">${bin.id}</div>
+          ${badgeHtml}
+        </div>
+        <div>${formatVolume(bin.capacity_l)} L</div>
+        <div>
+          <span class="chip ${fullnessClass}">${bin.metrics.fullness}%</span>
+        </div>
+        <div>
+          <span class="chip ${tempClass}">${bin.metrics.temperature}°</span>
+        </div>
+        <div>
+          <span class="chip ${humidityClass}">${bin.metrics.humidity}%</span>
+        </div>
+      </div>
+    `;
+  });
+
+  tableEl.innerHTML = html;
+  updateNeighborhoodStatus(bins);
+}
+
+function updateRouteStats(fullKm, routeKm) {
+  const routeDistanceEl = document.getElementById("route-distance");
+  const savedKmEl = document.getElementById("route-saved-km");
+  const savedFuelEl = document.getElementById("route-saved-fuel");
+  const savedEurEl = document.getElementById("route-saved-eur");
+  const savedCo2El = document.getElementById("route-saved-co2");
+
+  const DAILY_ROUTES = 3;
+
+  if (fullKm == null || isNaN(fullKm) || routeKm == null || isNaN(routeKm)) {
+    routeDistanceEl.textContent = "–";
+    savedKmEl.textContent = "–";
+    savedFuelEl.textContent = "–";
+    savedEurEl.textContent = "–";
+    savedCo2El.textContent = "–";
+    return;
+  }
+
+  const baselineDayKm = fullKm * DAILY_ROUTES;
+  const optimizedDayKm = routeKm * DAILY_ROUTES;
+  const savedKm = Math.max(baselineDayKm - optimizedDayKm, 0);
+  const savedFuel = savedKm * FUEL_PER_KM;
+  const savedEur = savedFuel * FUEL_PRICE_EUR_PER_L;
+  const savedCO2 = savedFuel * CO2_PER_L_DIESEL_KG;
+
+  savedKmEl.textContent = savedKm.toFixed(2) + " km";
+  savedFuelEl.textContent = savedFuel.toFixed(2) + " L";
+  savedEurEl.textContent = "€" + savedEur.toFixed(2);
+  savedCo2El.textContent = savedCO2.toFixed(2) + " kg";
+  routeDistanceEl.textContent = optimizedDayKm.toFixed(2) + " km";
+}
+
+function formatTime(hour, minute) {
+  const h = hour.toString().padStart(2, "0");
+  const m = minute.toString().padStart(2, "0");
+  return `${h}:${m}`;
+}
+
+function addHours(baseHour, baseMinute, deltaHours) {
+  const totalMinutes = baseHour * 60 + baseMinute + Math.round(deltaHours * 60);
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
+  return formatTime(h, m);
+}
+
+function updateRouteForecast(bins, baseBinsToCollectCount, baseRouteKm) {
+  const container = document.getElementById("routes-forecast");
+  const ROUTES_COUNT = 3;
+  const startSlots = [
+    { h: 6, m: 0 },
+    { h: 10, m: 0 },
+    { h: 14, m: 0 }
+  ];
+
+  forecastRoutes = [];
+
+  if (!container) return;
+
+  if (!bins || bins.length === 0 || baseBinsToCollectCount <= 0 || !baseRouteKm || isNaN(baseRouteKm)) {
+    container.innerHTML = `
+      <div class="route-run-card">
+        <div class="route-run-header">
+          <span class="route-run-title">Route 1</span>
+          <span class="route-run-time">—</span>
+        </div>
+        <div class="route-run-body">
+          <div class="route-run-row">
+            <span class="label">Note</span>
+            <span class="value">No bins above collection threshold.</span>
+          </div>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  let simBins = bins.map(b => ({
+    id: b.id,
+    capacity_l: b.capacity_l,
+    fullness: b.metrics.fullness
+  }));
+
+  const growthSteps = [20, 30, 40];
+  const htmlParts = [];
+
+  for (let i = 0; i < ROUTES_COUNT; i++) {
+    const totalUsedVolumeL = simBins.reduce((s, b) => s + b.capacity_l * (b.fullness / 100), 0);
+    const binsToCollectFuture = simBins.filter(b => b.fullness >= FULLNESS_COLLECT_THRESHOLD);
+    const binsCount = binsToCollectFuture.length;
+    const binIds = binsToCollectFuture.map(b => b.id);
+
+    if (binsCount === 0 || totalUsedVolumeL === 0) {
+      htmlParts.push(`
+        <div class="route-run-card">
+          <div class="route-run-header">
+            <span class="route-run-title">Route ${i + 1}</span>
+            <span class="route-run-time">—</span>
+          </div>
+          <div class="route-run-body">
+            <div class="route-run-row">
+              <span class="label">Note</span>
+              <span class="value">No collection needed.</span>
+            </div>
+          </div>
+        </div>
+      `);
+      forecastRoutes.push({
+        index: i + 1,
+        binIds: [],
+        km: 0,
+        startTime: null,
+        endTime: null,
+        collectionPct: 0
+      });
+    } else {
+      const binsScale = binsCount / baseBinsToCollectCount;
+      const intensityFactor = 1 + i * 0.15;
+      const km = baseRouteKm * binsScale * intensityFactor;
+
+      const drivingHours = km / 20;
+      const serviceHours = binsCount * 0.05;
+      const totalHours = drivingHours + serviceHours;
+
+      const start = startSlots[i] || startSlots[startSlots.length - 1];
+      const startTimeStr = formatTime(start.h, start.m);
+      const endTimeStr = addHours(start.h, start.m, totalHours);
+
+      htmlParts.push(`
+        <div class="route-run-card">
+          <div class="route-run-header">
+            <span class="route-run-title">Route ${i + 1}</span>
+            <span class="route-run-time">—</span>
+          </div>
+          <div class="route-run-body">
+            <div class="route-run-row">
+              <span class="label">Bins to collect</span>
+              <span class="value">${binsCount}</span>
+            </div>
+            <div class="route-run-row">
+              <span class="label">Route distance</span>
+              <span class="value">${km.toFixed(2)} km</span>
+            </div>
+          </div>
+        </div>
+      `);
+
+      forecastRoutes.push({
+        index: i + 1,
+        binIds,
+        km,
+        startTime: startTimeStr,
+        endTime: endTimeStr,
+        collectionPct: 0
+      });
+    }
+
+    const growth = growthSteps[Math.min(i, growthSteps.length - 1)];
+    simBins = simBins.map(b => {
+      let fullness = b.fullness;
+      if (b.fullness >= FULLNESS_COLLECT_THRESHOLD) {
+        fullness = 15;
+      }
+      fullness = Math.min(100, fullness + growth);
+      return { ...b, fullness };
+    });
+  }
+
+  container.innerHTML = htmlParts.join("");
+}
+
+async function renderSelectedRoute(mode) {
+  if (!currentNeighborhoodKey) return;
+  currentMode = mode;
+
+  const neighborhood = NEIGHBORHOODS[currentNeighborhoodKey];
+  if (!neighborhood) return;
+
+  let bins = neighborhood.bins.map(b => ({ ...b }));
+  let binsToCollect;
+
+  if (mode === "today") {
+    bins.forEach(b => {
+      b.shouldCollect = b.metrics.fullness >= FULLNESS_COLLECT_THRESHOLD;
+    });
+    binsToCollect = bins.filter(b => b.shouldCollect);
+  } else {
+    const idx = parseInt(mode.replace("future", ""), 10) - 1;
+    const routeInfo = forecastRoutes[idx];
+    const idsSet = new Set((routeInfo && routeInfo.binIds) || []);
+    bins.forEach(b => {
+      b.shouldCollect = idsSet.has(b.id);
+    });
+    binsToCollect = bins.filter(b => b.shouldCollect);
+  }
+
+  clearMapLayers();
+  drawParkingMarker();
+  drawBinMarkers(bins);
+
+  let routeKm = 0;
+
+  if (binsToCollect.length > 0) {
+    try {
+      const trip = await getOptimalRouteWithParking(PARKING, binsToCollect);
+      routeKm = trip.distance / 1000;
+      if (mode !== "today") {
+        drawRoute(trip);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  } else {
+    const group = L.featureGroup([parkingMarker, ...markers]);
+    if (markers.length > 0) {
+      map.fitBounds(group.getBounds(), { padding: [40, 40] });
+    }
+  }
+
+  updateStatsPanel(neighborhood.label, bins, binsToCollect);
+
+  if (mode === "today" && currentFullKm != null && binsToCollect.length > 0) {
+    updateRouteStats(currentFullKm, routeKm);
+    updateRouteForecast(bins, binsToCollect.length, routeKm);
+  }
+}
+
+async function generateRouteForNeighborhood(key) {
+  const neighborhood = NEIGHBORHOODS[key];
+  if (!neighborhood) {
+    updateStatsPanel("", [], []);
+    updateRouteStats(null, null);
+    updateRouteForecast([], 0, 0);
+    return;
+  }
+
+  currentNeighborhoodKey = key;
+
+  try {
+    const fullTrip = await getOptimalRouteWithParking(PARKING, neighborhood.bins);
+    currentFullKm = fullTrip.distance / 1000;
+  } catch (err) {
+    console.error(err);
+    currentFullKm = null;
+  }
+
+  const routeSelectEl = document.getElementById("routeSelect");
+  if (routeSelectEl) {
+    routeSelectEl.value = "today";
+  }
+  currentMode = "today";
+  await renderSelectedRoute("today");
+}
+
+const neighborhoodSelect = document.getElementById("neighborhoodSelect");
+const routeSelect = document.getElementById("routeSelect");
+
+neighborhoodSelect.addEventListener("change", () => {
+  generateRouteForNeighborhood(neighborhoodSelect.value);
+});
+
+routeSelect.addEventListener("change", () => {
+  renderSelectedRoute(routeSelect.value);
+});
+
+generateRouteForNeighborhood(neighborhoodSelect.value);
+</script>
+
+</body>
+</html>
+
